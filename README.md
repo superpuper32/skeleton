@@ -1,0 +1,2 @@
+# skeleton
+Simple template layout
