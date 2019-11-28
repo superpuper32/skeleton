@@ -4,17 +4,21 @@ const gulp = require('gulp');
 const through2 = require('through2').obj;
 const File = require('vinyl');
 
-
 gulp.task('assets', function() {
 
     const mtimes = {};
 
     return gulp.src('frontend/assets/**/**.*')
         .pipe(through2(
-            
             function(file, enc, callback) {
                 mtimes[file.relative] = file.stat.mtime;
                 callback(null, file);
+            }
+        ))
+        .pipe(gulp.dest('public'))
+        .pipe(through2(
+            function(file, enc, callback) {
+                callback();
             },
             function(callback) {
                 let manifest = new File({
@@ -27,6 +31,6 @@ gulp.task('assets', function() {
                 callback();
             }
         ))
-        .pipe(gulp.dest('public'));
+        .pipe(gulp.dest('.'));
 
 });
