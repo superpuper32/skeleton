@@ -23,6 +23,7 @@
     "gulp-stylus": "^2.7.0",
     "multipipe": "^3.0.1",
     "stylus": "^0.54.7",
-    "through2": "^3.0.1"
+    "through2": "^3.0.1",
+    "vinyl": "^2.2.0"
   }
 }
