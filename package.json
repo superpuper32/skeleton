@@ -22,6 +22,7 @@
     "gulp-sourcemaps": "^2.6.5",
     "gulp-stylus": "^2.7.0",
     "multipipe": "^3.0.1",
-    "stylus": "^0.54.7"
+    "stylus": "^0.54.7",
+    "through2": "^3.0.1"
   }
 }
