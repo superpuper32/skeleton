@@ -1,36 +1,30 @@
 'use strict';
 
 const gulp = require('gulp');
+const eslint = require('gulp-eslint');
 const through2 = require('through2').obj;
-const File = require('vinyl');
+const fs = require('fs');
 
-gulp.task('assets', function() {
+// githook
+gulp.task('lint', function() {   // gulp-cash plugin
 
-    const mtimes = {};
+    let eslintResults = {};
 
-    return gulp.src('frontend/assets/**/**.*')
-        .pipe(through2(
-            function(file, enc, callback) {
-                mtimes[file.relative] = file.stat.mtime;
-                callback(null, file);
-            }
-        ))
-        .pipe(gulp.dest('public'))
-        .pipe(through2(
-            function(file, enc, callback) {
-                callback();
-            },
-            function(callback) {
-                let manifest = new File({
-                    // cwd base path contents
-                    contents: new Buffer(JSON.stringify(mtimes)),
-                    base: process.cwd(),
-                    path: process.cwd() + '/manifest.json'
-                });
-                this.push(manifest);
-                callback();
-            }
-        ))
-        .pipe(gulp.dest('.'));
+    let cacheFilePath = process.cwd() + '/tmp/lintCache.json';
+
+    return gulp.src('frontend/**/*.js')
+        .pipe(eslint())   // file.eslint   // .eslinterc
+        .pipe(through2(function (file, enc, callback) {
+            eslintResults[file.path] = {
+                eslint: file.eslint,
+                mtime: file.stat.mtime
+            };
+            callback(null, file);
+        }, function(callback) {
+            fs.writeFileSync(cacheFilePath, JSON.stringify((eslintResults)));
+            callback();
+        }))
+        .pipe(eslint.format());
+        //.pipe(eslint.failAfterError());   // exit code = 1
 
 });
