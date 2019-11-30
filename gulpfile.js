@@ -8,6 +8,12 @@ const gulpif = require('gulp-if');
 const combine = require('stream-combiner2').obj;
 const debug = require('gulp-debug');
 
+gulp.task('lint-old', function() {
+    return gulp.src('test/**/*.js')
+        .pipe(eslint())
+        .pipe(eslint.failAfterError());
+})
+
 gulp.task('lint', function() {
 
     let eslintResults = {};
@@ -20,7 +26,7 @@ gulp.task('lint', function() {
     }
     
     return gulp.src('frontend/**/*.js', {read: false})
-        .pipe(debug({title: 'src'}))
+        // .pipe(debug({title: 'src'}))
         .pipe(gulpif(
             function(file) {
                 return eslintResults[file.path] && eslintResults[file.path].mtime == file.stat.mtime.toJSON();
@@ -35,7 +41,7 @@ gulp.task('lint', function() {
                     callback(null, file);
                 }),
                 eslint(),
-                debug({title: 'eslint'}),
+                // debug({title: 'eslint'}),
                 through2(function(file, enc, callback) {
                     eslintResults[file.path] = {
                         eslint: file.eslint,
@@ -45,9 +51,9 @@ gulp.task('lint', function() {
                 })
             )
         ))
-        .pipe(eslint.format())
         .on('end', function() {
             fs.writeFileSync(cacheFilePath, JSON.stringify((eslintResults)));
-        });
+        })
+        .pipe(eslint.failAfterError());
 
 });
