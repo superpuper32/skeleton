@@ -4,41 +4,35 @@ const gulp = require('gulp');
 const eslint = require('gulp-eslint');
 const through2 = require('through2').obj;
 const fs = require('fs');
-const gulpif = require('gulp-if');
 const combine = require('stream-combiner2').obj;
-const debug = require('gulp-debug');
-const stylus = require('gulp-stylus');
-const sourcemaps = require('gulp-sourcemaps');
-const del = require('del');
+
 const browserSync = require('browser-sync').create();
-const notify = require('gulp-notify');
 
-const isDevelopment = !process.env.NODE_ENV || process.env.NODE_ENV == 'development';
+function lazyRequireTask(taskName, path, options) {
+    options = options || {};
+    options.taskName = taskName;
+    gulp.task(taskName, function(callback) {
+        let task = require(path).call(this, options);
 
-gulp.task('styles', function() {
+        return task(callback);
+    });
+}
 
-    return combine(
-        gulp.src('frontend/styles/main.styl'),
-        gulpIf(isDevelopment, sourcemaps.init()),
-        stylus(),
-        gulpIf(isDevelopment, sourcemaps.write()),
-        gulp.dest('public')
-    ).on('error', notufy.onError());
-
+lazyRequireTask('styles', './tasks/styles', {
+    src: 'frontend/styles/main.styl'
 });
 
-gulp.task('clean', function() {
-    return del('public');
+lazyRequireTask('clean', './tasks/clean', {
+    dst: 'public'
 });
 
-gulp.task('assets', function() {
-    return gulp.src('frontend/assets/**', {since: gulp.lastRun('assets')})
-        .pipe(debug({title: 'assets'}))
-        .pipe(gulp.dest('public'));
+lazyRequireTask('assets', './tasks/assets', {
+    src: 'frontend/assets/**',
+    dst: 'public'
 });
 
 gulp.task('build', gulp.series(
-    'clean', 
+    'clean',
     gulp.parallel('styles', 'assets'))
 );
 
@@ -70,7 +64,7 @@ gulp.task('lint', function() {
         eslintResults = JSON.parse(fs.readFileSync(cacheFilePath));
     } catch (e) {
     }
-    
+
     return gulp.src('frontend/**/*.js', {read: false})
         .pipe(gulpif(
             function(file) {
