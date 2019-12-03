@@ -1,12 +1,6 @@
 'use strict';
 
 const gulp = require('gulp');
-const eslint = require('gulp-eslint');
-const through2 = require('through2').obj;
-const fs = require('fs');
-const combine = require('stream-combiner2').obj;
-
-const browserSync = require('browser-sync').create();
 
 function lazyRequireTask(taskName, path, options) {
     options = options || {};
@@ -42,56 +36,15 @@ gulp.task('watch', function() {
     gulp.watch('frontend/assets/**/*.*', gulp.series('assets'));
 });
 
-gulp.task('serve', function() {
-    browserSync.init({
-        server: 'public'
-    });
-
-    browserSync.watch('public/**/*.*').on('change', browserSync.reload)
+lazyRequireTask('serve', './tasks/serve', {
+    src: 'public'
 });
 
 gulp.task('dev',
     gulp.series('build', gulp.parallel('watch', 'serve'))
 );
 
-gulp.task('lint', function() {
-
-    let eslintResults = {};
-
-    let cacheFilePath = process.cwd() + '/tmp/lintCache.json';
-
-    try {
-        eslintResults = JSON.parse(fs.readFileSync(cacheFilePath));
-    } catch (e) {
-    }
-
-    return gulp.src('frontend/**/*.js', {read: false})
-        .pipe(gulpif(
-            function(file) {
-                return eslintResults[file.path] && eslintResults[file.path].mtime == file.stat.mtime.toJSON();
-            },
-            through2(function(file, enc, callback) {
-                file.eslint = eslintResults[file.path].eslint;
-                callback(null, file);
-            }),
-            combine(
-                through2(function(file, enc, callback) {
-                    file.contents = fs.readFileSync(file.path);
-                    callback(null, file);
-                }),
-                eslint(),
-                through2(function(file, enc, callback) {
-                    eslintResults[file.path] = {
-                        eslint: file.eslint,
-                        mtime: file.stat.mtime
-                    };
-                    callback(null, file);
-                })
-            )
-        ))
-        .on('end', function() {
-            fs.writeFileSync(cacheFilePath, JSON.stringify((eslintResults)));
-        })
-        .pipe(eslint.failAfterError());
-
+lazyRequireTask('lint', './tasks/lint', {
+    cacheFilePath: process.cwd() + '/tmp/lintCache.json',
+    src: 'frontend/**/*.js'
 });

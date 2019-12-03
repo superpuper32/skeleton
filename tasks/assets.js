@@ -9,5 +9,5 @@ module.exports = function(options) {
         return gulp.src(options.src, {since: gulp.lastRun('assets')})
             .pipe(debug({title: 'assets'}))
             .pipe(gulp.dest('public'));
-    }
-}
+    };
+};
