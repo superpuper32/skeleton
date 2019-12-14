@@ -9,7 +9,7 @@ module.exports = function(options) {
             server: 'public'
         });
 
-        browserSync.watch(options.watch).on('change', browserSync.reload)
+        browserSync.watch('public/**/*.*').on('change', browserSync.reload)
     };
 
 }
